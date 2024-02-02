@@ -1,0 +1,46 @@
+/* Style général du site */
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #222222;
+}
+
+/* Style du titre principal */
+h1,h2 {
+  color: #00ffff;
+  background-image: linear-gradient(to right, #00ffff, #ff00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  padding: 20px;
+  font-size: 48px;
+}
+
+/* Style du paragraphe d'introduction */
+p {
+  margin: 20px;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+/* Style des liens */
+a {
+  display: block;
+  width: 300px;
+  margin: 10px auto;
+  padding: 10px;
+  border: 2px solid #00ffff;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #00ffff;
+  font-weight: bold;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Style des liens au survol */
+a:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px #00ffff;
+}

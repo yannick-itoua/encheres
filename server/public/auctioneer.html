@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Auctioneer</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="./style/auctioneer.css" type="text/css">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<script defer src="scripts/auctioneer-bundle.js"></script></head>
+<body>
+  <h1>Commissaire Priseur</h1>
+  <div id='enchererecue'>
+    <p><span id="info"></span> <span id='encherisseur'></span><span id="infotxt"></span>  <span id="encheregain"> </span></p>
+      <div id="fin"></div>
+    </div>
+    <p id='gameInfo'></p>
+    <div id='preparation'>
+      <p>Objet aux enchères <input type="text" id="description" placeholder="description"></p>
+      <p>Prix de départ <input type="number" id="startingprice" min="0" value="0"></p>
+      <p>Montant actuel enchère <span id="actualprice"></span></p>
+      
+      <button id="start"><img src="images/start.jpg" alt="start"></button>
+      <button id="terminer"><img src="images/bid.jpg" alt="bid"></button>       
+    </div>
+    <a href="/">Retour à l'accueil</a>
+  </body>
+  </html>
