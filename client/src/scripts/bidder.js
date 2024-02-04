@@ -6,6 +6,20 @@ const BT10 = document.getElementById("10");
 const BT50 = document.getElementById("50");
 const BT100 = document.getElementById("100");
 
+// Fonction pour cacher les boutons de jeu
+const hiddenButtons = () => {
+  BT10.style.visibility = "hidden";
+  BT50.style.visibility = "hidden";
+  BT100.style.visibility = "hidden";
+}
+
+// Fonction pour afficher les boutons de jeu
+const showButtons = () => {
+  BT10.style.visibility = "visible";
+  BT50.style.visibility = "visible";
+  BT100.style.visibility = "visible";
+}
+
 // Fonction pour désactiver les boutons de jeu
 const disableButtons = () => {
   BT10.disabled = true;
@@ -23,10 +37,12 @@ const enableButtons = () => {
 const refreshStatus = (value) => {
   if(value == 'waiting') {
     statusLabel.innerHTML = "En attente du debut de l'enchere...";
+    hiddenButtons();
     disableButtons();
   }
   else if(value == 'playing') {
     statusLabel.innerHTML = "Enchere en cours";
+    showButtons();
     disableButtons();
   }
 }
@@ -91,6 +107,7 @@ socket.on('end', (finalValue,descValue,lastBidderId) => {
 });
 
 disableButtons();
+hiddenButtons();
 socket.emit('encherisseur');
 socket.on('status', value => refreshStatus(value));
 
