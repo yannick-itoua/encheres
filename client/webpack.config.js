@@ -6,7 +6,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 const PRODUCTION = false;
 const OUTPATH = PRODUCTION ? '../server/public' : '../server/public';
 module.exports = {
-  //entry: './src/scripts/pfc.js',
   entry: {
     'auctioneer' : path.resolve(__dirname, './src', 'scripts', 'auctioneer.js'),
     'bidder' : path.resolve(__dirname, './src', 'scripts', 'bidder.js')
