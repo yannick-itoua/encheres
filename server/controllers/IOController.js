@@ -5,17 +5,13 @@ export default class IOController {
     this.id='';
     this.playerC = '';
     this.playerCSocket;
-    this.playerE1 = '';
-    this.playerE1Socket;
-    this.playerE2 = '';
-    this.playerE2Socket;
-    this.playerE3 = '';
-    this.playerE3Socket;
+    this.playersE = new Map();
     this.finished = false;
     this.price='';
     this.nprice='';
     this.totalPrice=0;
     this.description='';
+    this.playing = false; 
   }
   
   registerSocket(socket){
@@ -43,25 +39,32 @@ export default class IOController {
       this.sayIfReady();
   }
   
-  registerEncherisseur(socket) {
-      console.log(`Encherisseur connexion ID : ${socket.id}`);
-      if(this.playerE1 == '') {
-          this.playerE1 = socket.id;
-          this.playerE1Socket = socket;
-          console.log('Connexion Encherisseur1 enregistrée');
-      }
-      else if(this.playerE2 == '') {
-          this.playerE2 = socket.id;
-          this.playerE2Socket = socket;
-          console.log('Connexion Encherisseur2 enregistrée');
-      }
-      else {
-          socket.emit('maxEncherisseurReached');
-          socket.disconnect(true);
-          console.log('Nouvelle connexion refusée : 2 encherisseurs maximum');
-      }
-      this.sayIfReady();
+  sendGameState() {
+  const gameState = this.playing ? 'playing' : 'waiting';
+  if (this.playerCSocket) {
+    this.playerCSocket.emit('gameState', gameState);
   }
+  this.playersE.forEach((socket, id) => {
+    socket.emit('gameState', gameState);
+  });
+}
+
+  
+  registerEncherisseur(socket) {
+  console.log(`Encherisseur connexion ID : ${socket.id}`);
+  // Ajoutez cette condition pour vérifier si le jeu est déjà en cours
+  if(this.playing) {
+    socket.emit('maxEncherisseurReached');
+    socket.disconnect(true);
+    console.log('Nouvelle connexion refusée : Le jeu a déjà commencé');
+  } else {
+    this.playersE.set(socket.id, socket);
+    console.log('Connexion Encherisseur enregistrée');
+  }
+  this.sayIfReady();
+  this.sendGameState();
+}
+
   
   leave(socket) {
     console.log(`Déconnexion ID : ${socket.id}`);
@@ -69,87 +72,66 @@ export default class IOController {
       this.playerC = '';
       console.log('Commissaire s\'est déconnecté');
     }
-    else if(this.playerE1 == socket.id) {
-        this.playerE1 = '';
-        console.log('Encherisseur 1 s\'est déconnecté');
-    }
-    else if(this.playerE2 == socket.id) {
-        this.playerE2 = '';
-        console.log('Encherisseur 2 s\'est déconnecté');
-    }
-    else if(this.playerE3 == socket.id) {
-        this.playerE3 = '';
-        console.log('Encherisseur 3 s\'est déconnecté');
+    else if(this.playersE.has(socket.id)) {
+        this.playersE.delete(socket.id);
+        console.log('Encherisseur s\'est déconnecté');
     }
     if(!this.finished) { this.sayIfReady(); }
     else { this.finishedGame = true; }
   }
   
   sayIfReady() {
-    if(this.playerC != '' && this.playerE1 == '' && this.playerE2 == '') {
+    if(this.playerC != '' && this.playersE.size == 0) {
         this.playerCSocket.emit('status', 'waiting');
     }
-    else if(this.playerC == '' && this.playerE1 != '' && this.playerE2 == '') {
-        this.playerE1Socket.emit('status', 'waiting');
+    else if(this.playerC == '' && this.playersE.size > 0) {
+        this.playersE.forEach((socket, id) => {
+            socket.emit('status', 'waiting');
+        });
     }
-    else if(this.playerC == '' && this.playerE1 == '' && this.playerE2 != '') {
-        this.playerE2Socket.emit('status', 'waiting');
-    }
-    else if(this.playerC != '' && this.playerE1 != '' && this.playerE2 == '') {
-        this.playerCSocket.emit('status', 'waiting');
-        this.playerE1Socket.emit('status', 'waiting');
-    }
-    else if(this.playerC != '' && this.playerE1 == '' && this.playerE2 != '') {
-        this.playerCSocket.emit('status', 'waiting');
-        this.playerE2Socket.emit('status', 'waiting');
-    }
-    else if(this.playerC == '' && this.playerE1 != '' && this.playerE2 != '') {
-        this.playerE1Socket.emit('status', 'waiting');
-        this.playerE2Socket.emit('status', 'waiting');
-    }
-    else if(this.playerC != '' && this.playerE1 != '' && this.playerE2 != '') {
+    else if(this.playerC != '' && this.playersE.size > 0) {
         this.playerCSocket.emit('status', 'playing');
-        this.playerE1Socket.emit('status', 'playing');
-        this.playerE2Socket.emit('status', 'playing');
-    }
-}
- 
-  play(socket,price,desc){
-    if(socket.id == this.playerC) {
-        this.price = price;
-        this.description=desc;
-        this.playerE1Socket.emit('update',price,desc);
-        this.playerE2Socket.emit('update',price,desc);
-        this.playerCSocket.emit('update',price);
+        this.playersE.forEach((socket, id) => {
+            socket.emit('status', 'playing');
+        });
     }
   }
   
-  encherir(socket,value){
-    if(socket.id == this.playerE1){
-      this.nprice=parseInt(this.price)+parseInt(value);
-      this.totalPrice = this.nprice;
-      this.price = this.nprice;
-      this.id=this.playerE1;
-      this.playerE1Socket.emit('maj',this.totalPrice,value,this.id);
-      this.playerE2Socket.emit('maj',this.totalPrice,value,this.id);
-      this.playerCSocket.emit('maj',this.totalPrice,value,this.id);
+  
+  play(socket,price,desc){
+    if(socket.id == this.playerC) {
+      this.playing = true;
+        this.price = price;
+        this.description=desc;
+        this.playersE.forEach((socket, id) => {
+            socket.emit('update',price,desc);
+        });
+        this.playerCSocket.emit('update',price);
     }
-    if(socket.id == this.playerE2){
+    this.sendGameState();
+  }
+  
+  encherir(socket,value){
+    if(this.playersE.has(socket.id)){
       this.nprice=parseInt(this.price)+parseInt(value);
       this.totalPrice = this.nprice;
       this.price = this.nprice;
-      this.id=this.playerE2;
-      this.playerE1Socket.emit('maj',this.totalPrice,value,this.id);
-      this.playerE2Socket.emit('maj',this.totalPrice,value,this.id);
+      this.id=socket.id;
+      this.playersE.forEach((socket, id) => {
+            socket.emit('maj',this.totalPrice,value,this.id);
+        });
       this.playerCSocket.emit('maj',this.totalPrice,value,this.id);
     }
   }
   
   end(socket,finalValue,descValue,lastBidderId){
     if(socket.id==this.playerC){
+      this.playersE.forEach((socket, id) => {
+            socket.emit('end',finalValue,descValue,lastBidderId);
+        });
       this.playerCSocket.emit('end',finalValue,descValue,lastBidderId);
-      this.playerE1Socket.emit('end',finalValue,descValue,lastBidderId);
-      this.playerE2Socket.emit('end',finalValue,descValue,lastBidderId);
     }
+    this.playing=false;
+    this.sendGameState();
   }
 }

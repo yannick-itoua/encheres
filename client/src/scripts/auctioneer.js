@@ -60,6 +60,7 @@ BTbid.addEventListener("click", () => {
 socket.emit('end',finalValue,descValue,lastBidderId);
 statusLabel.innerHTML = "";
 BTbid.disabled = true;
+BTstart.disabled = true;
 });
 
 socket.on('end', (finalValue,descValue,lastBidderId) => {
@@ -73,6 +74,7 @@ socket.on('end', (finalValue,descValue,lastBidderId) => {
   document.querySelector('#actualprice').innerHTML = "-€";
   document.querySelector('#fin').innerHTML =descValue +" conclut à "+finalValue+"€ par "+lastBidderId;
   statusLabel.innerHTML = "Retour à l'accueil pour refaire une nouvelle mise au enchère";
+  disableButtons();
 });
 
 // Désactivation des boutons de jeu au début

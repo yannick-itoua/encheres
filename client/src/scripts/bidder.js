@@ -5,6 +5,7 @@ const status = document.getElementById("offre");
 const BT10 = document.getElementById("10");
 const BT50 = document.getElementById("50");
 const BT100 = document.getElementById("100");
+this.playing = false;
 
 // Fonction pour cacher les boutons de jeu
 const hiddenButtons = () => {
@@ -52,6 +53,7 @@ BT10.addEventListener("click", () => {
   statusLabel.innerHTML = "";
   status.innerHTML="10";
   socket.emit('newoffer', 10);
+  statusLabel.innerHTML = "Veuillez faire une offre";
   enableButtons();
 });
 
@@ -60,8 +62,8 @@ BT50.addEventListener("click", () => {
   statusLabel.innerHTML = "";
   status.innerHTML="50";
   socket.emit('newoffer', 50);
-  enableButtons();
   statusLabel.innerHTML = "Veuillez faire une offre";
+  enableButtons();
 });
 
 BT100.addEventListener("click", () => {
@@ -69,8 +71,8 @@ BT100.addEventListener("click", () => {
   statusLabel.innerHTML = "";
   status.innerHTML="100";
   socket.emit('newoffer', 100);
-  enableButtons();
   statusLabel.innerHTML = "Veuillez faire une offre";
+  enableButtons();
 });
 
 socket.on('update', (price,desc) => {
@@ -78,6 +80,7 @@ socket.on('update', (price,desc) => {
   console.log(desc);
   document.querySelector('#item').innerHTML = desc;
   document.querySelector('#itemprice').innerHTML = price;
+  this.playing = true;
   enableButtons();
   statusLabel.innerHTML = "Veuillez faire une offre";
 });
@@ -104,6 +107,15 @@ socket.on('end', (finalValue,descValue,lastBidderId) => {
   } else {
     document.querySelector('#fin').innerHTML = "Fin de l'enchère !!!! " + descValue + " a été gagné par " + lastBidderId;
   }
+  this.playing = false;
+});
+
+socket.on('gameState', (gameState) => {
+  if (gameState === 'playing') {
+    enableButtons();
+  } else {
+    disableButtons();
+  }
 });
 
 disableButtons();
@@ -116,5 +128,5 @@ socket.on('maxEncherisseurReached', () => {
   statusLabel.innerHTML = "Nombre maximal de joueurs atteint, connexion refusée.";
   document.querySelector('#item').innerHTML = "en attente";
   document.querySelector('#itemprice').innerHTML = "-€";
-  disableButtons();
 });
+
